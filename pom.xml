@@ -132,7 +132,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
-		<finalName>customer-onboaring</finalName>
+		<finalName>customer-onboaring-application</finalName>
 	</build>
 
 </project>
