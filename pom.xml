@@ -132,6 +132,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		<finalName>customer-onboaring</finalName>
 	</build>
 
 </project>

@@ -1,7 +1,6 @@
 {
-  "name": "package.json",
+  "name": "rcscustomeronboarding",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -15,5 +14,7 @@
   "bugs": {
     "url": "https://github.com/cdere/RCSCustomerOnboarding/issues"
   },
-  "homepage": "https://github.com/cdere/RCSCustomerOnboarding#readme"
+  "homepage": "https://github.com/cdere/RCSCustomerOnboarding#readme",
+  "keywords": [],
+  "description": ""
 }
