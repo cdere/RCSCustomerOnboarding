@@ -50,6 +50,15 @@ public class Customer {
     @Min(value = 1000, message = "Expected monthly volume must be at least 1000")
     private Integer expectedMonthlyVolume;
 
+    public void transitionTo(SubmissionStatus nextStatus) {
+        if (!this.status.canTransitionTo(nextStatus)) {
+            throw new IllegalStateException(
+                    "Invalid workflow transition: Cannot move from " + this.status + " to " + nextStatus
+            );
+        }
+        this.status = nextStatus;
+    }
+
     /*private String businessEIN;
     private String organizationType;
 

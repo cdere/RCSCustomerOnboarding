@@ -29,7 +29,8 @@ public class SecurityConfig {
                         .requestMatchers(PathRequest.toH2Console()).permitAll() // Allow H2 UI
                         .requestMatchers("/api/v1/onboarding/customer/addCustomer").hasAnyRole("CUSTOMER", "ADMIN")
                         .requestMatchers("/api/v1/onboarding/customer/**").hasAnyRole("TPM", "SALES", "ADMIN")
-                        .requestMatchers("/api/v1/onboarding/search").hasAnyRole("TPM", "SALES", "ADMIN")
+                        .requestMatchers("/api/v1/onboarding/customer/validateForm/**").hasAnyRole("TPM", "SALES", "ADMIN")
+                        .requestMatchers("/api/v1/forms/audit/**").hasAnyRole("SALES", "ADMIN")
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)) // Required for H2 Console frames
@@ -53,7 +54,11 @@ public class SecurityConfig {
                 .password(passwordEncoder().encode("pass"))
                 .roles("SALES").build();
 
-        return new InMemoryUserDetailsManager(customer, tpm, sales);
+        UserDetails admin = User.withUsername("admin")
+                .password(passwordEncoder().encode("pass"))
+                .roles("ADMIN").build();
+
+        return new InMemoryUserDetailsManager(customer, tpm, sales, admin);
     }
 
     @Bean

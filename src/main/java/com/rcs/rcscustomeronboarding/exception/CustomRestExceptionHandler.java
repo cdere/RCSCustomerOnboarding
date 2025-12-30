@@ -1,23 +1,24 @@
 package com.rcs.rcscustomeronboarding.exception;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
 @ControllerAdvice
+@Slf4j
 public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
-    private static final Logger logger = LoggerFactory.getLogger(CustomRestExceptionHandler.class);
 
     @ExceptionHandler(CustomerNotFoundException.class)
     public ResponseEntity<Object> handleFormNotFoundException(CustomerNotFoundException ex) {
+        log.warn("Customer not found: {}", ex.getMessage(), ex);
         // Create a custom error response body
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", Instant.now());
@@ -28,6 +29,7 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<Object> handleUnauthorizedException(UnauthorizedException ex) {
+        log.warn("Unauthorized access: {}", ex.getMessage(), ex);
         // Create a custom error response body
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", Instant.now());
@@ -36,39 +38,24 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
     }
 
-/*
-    @ExceptionHandler(value = Exception.class)
-    public ResponseEntity<ErrorResponse> handleException(Exception ex) {
-        logger.error("Exception occurred: ", ex);
-        ErrorResponse errorResponse = new ErrorResponse("INTERNAL_SERVER_ERROR", ex.getMessage()) {
-            @Override
-            public HttpStatusCode getStatusCode() {
-                return null;
-            }
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Object> handleIllegalStateException(IllegalStateException ex) {
+        log.warn("Illegal state encountered: {}", ex.getMessage(), ex);
+        // Create a custom error response body
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", Instant.now());
+        body.put("message", ex.getMessage());
 
-            @Override
-            public ProblemDetail getBody() {
-                return null;
-            }
-        };
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(body, HttpStatus.NOT_ACCEPTABLE);
     }
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Object> handleAccessDeniedException(AccessDeniedException ex) {
+        log.warn("Access denied: {}", ex.getMessage(), ex);
+        // Create a custom error response body
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", Instant.now());
+        body.put("message", ex.getMessage());
 
-    @ExceptionHandler(value = ConstraintViolationException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(ConstraintViolationException ex) {
-        String message = ex.getMessage();
-        logger.error("Validation exception: ", ex);
-        ErrorResponse errorResponse = new ErrorResponse("VALIDATION_ERROR", message) {
-            @Override
-            public HttpStatusCode getStatusCode() {
-                return null;
-            }
-
-            @Override
-            public ProblemDetail getBody() {
-                return null;
-            }
-        };
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-    }*/
+        return new ResponseEntity<>(body, HttpStatus.NOT_ACCEPTABLE);
+    }
 }

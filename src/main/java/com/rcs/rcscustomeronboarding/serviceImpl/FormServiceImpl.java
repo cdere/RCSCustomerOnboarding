@@ -7,6 +7,7 @@ import com.rcs.rcscustomeronboarding.service.FormService;
 import com.rcs.rcscustomeronboarding.util.SubmissionStatus;
 import com.rcs.rcscustomeronboarding.util.UserRole;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -23,27 +24,42 @@ import java.util.function.Predicate;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class FormServiceImpl implements FormService {
 
     private final CustomerRepository customerRepository;
 
     public Customer updateStatus(Long id, SubmissionStatus newStatus, String remarks, Authentication authentication, Principal principal) {
+        log.info("updateStatus called for id={}, newStatus={}, updatedBy={}", id, newStatus, principal == null ? null : principal.getName());
         Customer form = customerRepository.findById(id)
-                .orElseThrow(CustomerNotFoundException::new);
+                .orElseThrow(() -> {
+                    log.warn("Customer with id={} not found", id);
+                    return new CustomerNotFoundException();
+                });
 
+        form.transitionTo(newStatus);
         UserRole role = extractRole(authentication);
         validateTransition(role, newStatus);
         applyUpdate(form, newStatus, remarks, principal);
 
-        return customerRepository.save(form);
+        Customer saved = customerRepository.save(form);
+        log.info("Customer id={} updated to status={}, saved successfully", id, newStatus);
+        return saved;
     }
 
     private UserRole extractRole(Authentication authentication) {
-        return authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .map(UserRole::valueOf)
-                .findFirst()
-                .orElseThrow(() -> new AccessDeniedException("No valid role found"));
+        try {
+            UserRole role = authentication.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .map(UserRole::valueOf)
+                    .findFirst()
+                    .orElseThrow(() -> new AccessDeniedException("No valid role found"));
+            log.debug("extractRole found role={}", role);
+            return role;
+        } catch (Exception e) {
+            log.error("Error extracting role from authentication", e);
+            throw e;
+        }
     }
 
     private void validateTransition(
@@ -52,7 +68,11 @@ public class FormServiceImpl implements FormService {
     ) {
         Optional.ofNullable(ROLE_RULES.get(role))
                 .filter(rule -> rule.test(newStatus))
-                .orElseThrow(() -> new AccessDeniedException("Role " + role + " cannot transition to " + newStatus));
+                .orElseThrow(() -> {
+                    log.warn("Role {} cannot transition to {}", role, newStatus);
+                    return new AccessDeniedException("Role " + role + " cannot transition to " + newStatus);
+                });
+        log.debug("validateTransition passed for role={}, newStatus={}", role, newStatus);
     }
 
     private void applyUpdate(
@@ -61,10 +81,12 @@ public class FormServiceImpl implements FormService {
             String remarks,
             Principal principal
     ) {
+        String updatedBy = principal == null ? null : principal.getName();
         form.setStatus(newStatus);
         form.setRemarks(remarks);
         form.setUpdatedAt(LocalDateTime.now());
-        form.setUpdatedBy(principal.getName());
+        form.setUpdatedBy(updatedBy);
+        log.debug("applyUpdate set status={}, remarks={}, updatedBy={}", newStatus, remarks, updatedBy);
     }
 
     private static final Map<UserRole, Predicate<SubmissionStatus>> ROLE_RULES =
@@ -75,7 +97,7 @@ public class FormServiceImpl implements FormService {
                 status -> status == SubmissionStatus.APPROVED);
 
         ROLE_RULES.put(UserRole.ROLE_TPM,
-                status -> true);
+                status -> status == SubmissionStatus.IN_REVIEW);
 
         ROLE_RULES.put(UserRole.ROLE_ADMIN,
                 status -> true);
