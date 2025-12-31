@@ -124,6 +124,41 @@ curl --location 'http://localhost:9092/api/v1/forms/audit/1/history?id=1' \
 --header 'accept: */*' \
 --header 'Authorization: Basic dHBtX3VzZXI6cGFzcw=='
 ```
+
+## EC2 Postman Collection
+
+### Add Customer Application/Record - Username: client_user, Password: pass (Basic Auth)
+```bash
+curl --location 'http://35.164.221.57:9092/api/v1/onboarding/customer/addCustomer' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: Basic Y2xpZW50X3VzZXI6cGFzcw==' \
+--data '{
+  "customerName": "abc",
+  "status": "DRAFT",
+  "remarks": "abc1",
+  "rcsProvider": "abcd",
+  "expectedMonthlyVolume": "7000"
+}'
+```
+### Validate Customer Application/Record - Review  - Username: client_user/tpm_sales/admin, Password: pass (Basic Auth)
+```bash
+curl --location --request PATCH 'http://35.164.221.57:9092/api/v1/onboarding/customer/validateForm/2/review?status=APPROVED&remarks=remark00000' \
+--header 'accept: */*' \
+--header 'Authorization: Basic dHBtX3VzZXI6cGFzcw=='
+``` 
+### Get All Customer Application/Records - Username: client_user/tpm_sales/admin, Password: pass (Basic Auth)
+```bash
+curl --location 'http://35.164.221.57:9092/api/v1/onboarding/customer/getCustomer' \
+--header 'accept: */*' \
+--header 'Authorization: Basic dHBtX3VzZXI6cGFzcw=='
+```
+### Get Audit History for a Customer Application/Record - Username: tpm_sales/admin, Password: pass (Basic Auth)
+```bash
+curl --location 'http://35.164.221.57:9092/api/v1/forms/audit/1/history?id=1' \
+--header 'accept: */*' \
+--header 'Authorization: Basic dHBtX3VzZXI6cGFzcw=='
+```
+
 ## Validation Strategy
 - Mandatory fields validated per Form Version
 - Business rules enforced before persistence
