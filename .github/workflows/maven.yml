@@ -63,15 +63,15 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_rsa -p ${{ secrets.EC2_PORT }} ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
             echo "Connected to EC2: $(hostname)"
-            # Install Java 17 (Amazon Corretto)
+            # Install Java 17
             if ! java -version 2>&1 | grep "17" > /dev/null; then
-              sudo yum install java-17-amazon-corretto -y
+              sudo apt install openjdk-17-jdk
             else
               echo "Java 17 already installed."
             fi
           
             # Set JAVA_HOME and update PATH
-            export JAVA_HOME=/usr/lib/jvm/java-17-amazon-corretto
+            export JAVA_HOME=/usr/lib/jvm/openjdk-17-jdk
             export PATH=$JAVA_HOME/bin:$PATH         
           
             echo "Killing or stopping the existing application if any"
