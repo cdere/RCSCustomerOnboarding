@@ -65,7 +65,7 @@ jobs:
             echo "Connected to EC2: $(hostname)"
             # Install Java 17
             if ! java -version 2>&1 | grep "17" > /dev/null; then
-              sudo apt install openjdk-17-jdk
+              sudo apt install openjdk-17-jre-headless
             else
               echo "Java 17 already installed."
             fi
