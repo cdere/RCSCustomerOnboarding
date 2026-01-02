@@ -158,7 +158,6 @@ curl --location 'http://35.164.221.57:9092/api/v1/forms/audit/1/history?id=1' \
 --header 'accept: */*' \
 --header 'Authorization: Basic dHBtX3VzZXI6cGFzcw=='
 ```
-
 ## Validation Strategy
 - Mandatory fields validated per Form Version
 - Business rules enforced before persistence
