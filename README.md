@@ -246,4 +246,43 @@ Client[Client / UI / API Consumer]
     IN_REVIEW --> REJECTED : Sales/Admin rejects
 
 
+## RCS Customer Onboarding Workflow Sequence Diagram for BPM tool - Camunda
+```mermaid
+sequenceDiagram
+    autonumber
+    participant C as Customer
+    participant API as Spring Boot API
+    participant DB as H2
+    participant CE as Camunda Engine
+    participant TPM as TPM / Sales Team
 
+    Note over C, TPM: RCS Customer Onboarding Workflow
+
+    C->>API: POST /api/v1/forms/submit (JSON Data)
+    API->>API: Validate Business Rules (FormValidationService)
+    
+    alt is valid
+        API->>DB: Save Submission (Status: DRAFT)
+        API->>CE: Start Process Instance (rcs_onboarding_process)
+        CE-->>API: Process Instance ID
+        API-->>C: 202 Accepted (Submission ID)
+        
+        Note right of CE: Camunda creates "User Task" for Reviewers
+        
+        TPM->>API: GET /api/v1/forms/tasks (Pending Reviews)
+        API->>CE: Query TaskService (candidateGroup=TPM)
+        CE-->>API: List of Tasks
+        API-->>TPM: Return Task List
+        
+        TPM->>API: PATCH /api/v1/forms/review/{id} (APPROVE)
+        API->>CE: Complete Task (taskId, variables)
+        
+        Note right of CE: Camunda triggers Service Task (external worker)
+        
+        CE->>API: executeServiceTask(UpdateStatus)
+        API->>DB: UPDATE status = 'APPROVED'
+        API->>DB: Log Audit Trail (Envers)
+    else is invalid
+        API-->>C: 400 Bad Request (Validation Errors)
+    end
+```
